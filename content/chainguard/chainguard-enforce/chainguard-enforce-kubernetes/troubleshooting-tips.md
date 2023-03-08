@@ -1,73 +1,85 @@
 ---
-title: "Troubleshooting tips"
+title: "Troubleshooting Tips"
 type: "article"
 description: "Troubleshooting tips for Chainguard Enforce"
-date: 2022-07-15T15:22:20+01:00
-lastmod: 2022-11-29T15:22:20+01:00
+date: 2023-03-06T15:22:20+01:00
+lastmod: 2023-03-06T15:22:20+01:00
 draft: false
 images: []
 menu:
   docs:
     parent: "chainguard-enforce-kubernetes"
-weight: 100
+weight: 900
 toc: true
 ---
 
-# Enforce troubleshooting FAQs:
-
-## Emergency
-
-There may be emergency situations where admission control is not desirable,
-either by preventing the cluster from functioning correctly or getting in
-the way of the operator, the Enforce admission webhook can be completely 
-disabled. Run the following command to disable it
+This page contains tips for troubleshooting problems that one may encounter when working with Chainguard Enforce. 
 
 
-```
+## How to disable admission control
+
+There may be urgent situations where having admission control enabled is not desirable. For example, it could be preventing the cluster from functioning correctly or may be getting in the way of the operator.
+
+In cases like this, you can completely disable the Chainguard Enforce admission webhook with the following commands.
+
+```sh
 kubectl delete validatingwebhookconfiguration enforcer
 kubectl delete mutatingwebhookconfiguration enforcer
 ```
 
-After your emergency is over, reinstall Enforce in your cluster to have the
-webhook restored to its normal operation.
+After your urgent situation is over, [reinstall Enforce in your cluster](/chainguard/chainguard-enforce/chainguard-enforce-kubernetes/alternative-installation-methods/) to restore the webhook to its normal operation.
 
-## Enforce did not parse my SBOM
 
-### Check your permission:
+## Chainguard Enforce is unable to parse a given SBOM
 
-Enforce scans your images from our SAAS and will need access to your images
-in order to parse the SBOM. If your image is in a private repository, check out
-this [doc](https://edu.chainguard.dev/chainguard/chainguard-enforce/chainguard-enforce-kubernetes/cloud-account-associations/)
-to grant Enforce the read access to your image.
+One issue that may come up when working with Chainguard Enforce is that it won't ingest an SBOM as expected. This section outlines several potential causes for this issue and how you can address them.
 
-### My SBOM is CycloneDX version 1.3 or older:
-   
-Currently, for CycloneDX we only support version 1.4. 
+
+### Check your permissions
+
+Chainguard Enforce needs access to your images in order to parse the associated SBOMs. If your image is in a private repository, check out [our guide on setting up cloud account associations](/chainguard/chainguard-enforce/chainguard-enforce-kubernetes/cloud-account-associations/) to grant Enforce read access to the image.
+
+
+### SBOMs using older versions of CycloneDX
+
+For CycloneDX, Chainguard Enforce currently only supports version 1.4.
+
     
-### My SBOM is included as an in-toto attestation: 
-    
-We are in the process of changing Enforce to parse SBOM attestation out of 
-the box, however in the meantime they are only parsed if there is a policy 
-covering them. Please follow our docs (like [this one](https://edu.chainguard.dev/chainguard/chainguard-enforce/chainguard-enforce-kubernetes/chainguard-policies-ui/),
-or [this one](https://edu.chainguard.dev/chainguard/chainguard-enforce/chainguard-enforce-kubernetes/chainguard-policies-cli/))
-to create a policy covering your image. Please also check out our
-[policy catalog](https://console.enforce.dev/policies/catalog).
+### SBOM included as an in-toto attestation
 
-## I create a policy but it does not cover my image:
+We are in the process of updating Chainguard Enforce so it can readily parse SBOM attestations out of the box. In the meantime, you can parse SBOMs through implementing specific policies that cover this use case.
 
-One common issues is that in ClusterImagePolicy, the glob wildcard `*` does
-not cover the `/` character: For example, a glob pattern like `gcr.io/foo/*`
-will only cover `gcr.io/foo/bar`, `gcr.io/foo/blah`, but not `gcr.io/foo/bar/baz`.
-To match _everything including the / character_, please use the `**` wildcard
-instead. 
-    
-## Enforce does not actually block a Pod creation:
+You can create a policy covering your image [through the Chainguard Enforce console](/chainguard/chainguard-enforce/chainguard-enforce-kubernetes/chainguard-policies-ui/) or [using the `chainctl` command line tool](/chainguard/chainguard-enforce/chainguard-enforce-kubernetes/chainguard-policies-cli/). Additionally, you can check out our [policy catalog](https://console.enforce.dev/policies/catalog) for our collection of policies that work directly with Chainguard Enforce.
 
-The first thing to check is whether you labeled your namespace with
-`policy.sigstore.dev/include=true`. Please use the exact string, variations like
-`included` won’t work.
-   
-Sometimes Enforce was installed using the observer profile. What this means is
-that Enforce has only read-only permission for discovery of workload in your
-clusters but not enforcing policies. You can run `chainctl cluster ls` to know
-what profile the cluster is using.
+
+## Policy does not cover a given image as expected
+
+When working with the `ClusterImagePolicy`, note that the glob wildcard `*` does not cover the `/` character. For example, a glob pattern like `gcr.io/apple/*` will cover paths like `gcr.io/apple/yak` or `gcr.io/apple/zebra`, but not `gcr.io/apple/banana/cashew`.
+
+To match _everything_ — including the `/` character — use the `**` wildcard instead.
+
+
+## Enforce does not block Pod creation as expected
+
+The first thing to check is whether you labeled your namespace with `policy.sigstore.dev/include=true`. You can double check whether the `default` namespace is correctly labeled with the following command.
+
+```sh
+kubectl get ns -l policy.sigstore.dev/include=true
+```
+
+If it is indeed labeled like this, you'll receive output like the following.
+
+```
+NAME      STATUS   AGE
+default   Active   24s
+```
+
+If you need to label your namespace, you can do so with the following command. Note that this example labels the `default` namespace.
+
+```sh
+kubectl label ns default policy.sigstore.dev/include=true --overwrite
+```
+
+Be sure to use the exact string, variations like `included` won’t work.
+
+Sometimes Chainguard Enforce is installed using the `observer` profile. Essentially, this means that Enforce just has read-only permission for workload discovery, and it cannot actually enforce policies. You can run `chainctl cluster ls` to find what profile the cluster is using.
