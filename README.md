@@ -119,33 +119,33 @@ Tags are based on:
 **Tags Working List**
 
 **Topic tags**
-* APKO
-* CHAINCTL 
-* COSIGN
-* ENFORCE
-* FULCIO
-* IMAGES
-* MELANGE
+* apko
+* chainctl 
+* Cosign
+* Enforce
+* Fulcio
+* Chainguard Images
+* melange
 * OCI
-* POLICY
-* POLICY CONTROLLER
-* PRODUCT 
-* REKOR
+* Policy
+* policy-controller
+* Product 
+* Rekor
 * SBOM
-* SIGSTORE
+* Sigstore
 * SLSA
 * VEX
-* WOLFI
+* Wolfi
 
-**Type tags** 
+### Type 
 
-* CHEAT SHEET
-* CONCEPTUAL
+* Cheat Sheet
+* Conceptual
 * FAQ
-* INTERACTIVE
-* OVERVIEW 
-* PROCEDURAL 
-* REFERENCE
-* TROUBLESHOOTING
-* VIDEO
-* WORKSHOP KIT
+* Interactive
+* Overview 
+* Procedural 
+* Reference
+* Troubleshooting
+* Video
+* Workshop Kit
